@@ -2,6 +2,7 @@ package com.example.artbook2
 
 import android.Manifest
 import android.app.Activity
+import android.content.Context
 import android.content.pm.PackageManager
 import android.net.Uri
 import android.os.Bundle
@@ -54,7 +55,12 @@ import androidx.core.app.ActivityCompat
 import androidx.core.content.ContextCompat
 import androidx.navigation.NavController
 import com.example.artbook2.ui.theme.ArtBook2Theme
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
+import java.io.File
+import java.io.FileOutputStream
+import java.io.InputStream
 
 class ArtActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -210,14 +216,17 @@ fun ArtScreen(navController: NavController, viewModel: ArtViewModel){
                 Button(
                     onClick ={
                         if (tempSelectedImageUri != null){
-                            val newArt = ArtModel(
-                                imageUri = tempSelectedImageUri!!,
-                                artistName = artistName.value,
-                                artName = artName.value,
-                                year = year.value
-                            )
-                            viewModel.addArt(newArt)
-                            navController.popBackStack()
+                            scope.launch {
+                                val savedImagePath = saveImageToInternalStorage(context, tempSelectedImageUri!!)
+                                val newArt = ArtModel(
+                                    imageUri = savedImagePath,
+                                    artistName = artistName.value,
+                                    artName = artName.value,
+                                    year = year.value
+                                )
+                                viewModel.addArt(newArt)
+                                navController.popBackStack()
+                            }
                         }
                     },
                     shape = RoundedCornerShape(5.dp)
@@ -226,6 +235,23 @@ fun ArtScreen(navController: NavController, viewModel: ArtViewModel){
                 }
             }
         }
+    }
+}
+
+suspend fun saveImageToInternalStorage(context: Context, uri: Uri): String {
+
+    return withContext(Dispatchers.IO){
+        val inputStream: InputStream? = context.contentResolver.openInputStream(uri)
+        val fileName = "art_${System.currentTimeMillis()}.jpg"
+        val file = File(context.filesDir, fileName)
+        val outputStream = FileOutputStream(file)
+
+        inputStream?.use { input ->
+            outputStream.use { output ->
+                input.copyTo(output)
+            }
+        }
+        file.absolutePath
     }
 }
 

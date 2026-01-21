@@ -27,6 +27,7 @@ import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -60,7 +61,9 @@ fun HomeScreen(navController: NavController, viewModel: ArtViewModel){
 
     var isOpen by remember { mutableStateOf(false) }
 
-    val artList = viewModel.artList
+    val artListState = viewModel.artlist.collectAsState(initial = emptyList())
+    val artList = artListState.value
+
 
     Scaffold(
         topBar = {
