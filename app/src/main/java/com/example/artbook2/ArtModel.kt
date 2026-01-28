@@ -6,10 +6,11 @@ import androidx.room.PrimaryKey
 
 @Entity(tableName = "arts")
 data class ArtModel(
-    @PrimaryKey(autoGenerate = true)
-    val id: Int = 0,
     var imageUri: String,
     var artistName: String,
     var artName: String,
-    var year: String) {
+    var year: String)
+{
+    @PrimaryKey(autoGenerate = true)
+    var id: Int = 0
 }
